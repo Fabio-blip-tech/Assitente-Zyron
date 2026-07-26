@@ -66,19 +66,19 @@ class Verificar(discord.ui.View):
     )
     async def verificar(self, interaction: discord.Interaction, button: discord.ui.Button):
 
-        cargo = interaction.guild.get_role(CARGO_VERIFICADO)
+        view = discord.ui.View()
 
-        if cargo in interaction.user.roles:
-            await interaction.response.send_message(
-                "✅ Você já está verificado!",
-                ephemeral=True
+        view.add_item(
+            discord.ui.Button(
+                label="🌐 Abrir verificação",
+                style=discord.ButtonStyle.link,
+                url="https://assitente-zyron.onrender.com/verify"
             )
-            return
-
-        await interaction.user.add_roles(cargo)
+        )
 
         await interaction.response.send_message(
-            "✅ Verificação concluída! Você recebeu o cargo.",
+            "🔐 Clique no botão abaixo para ir ao site de verificação:",
+            view=view,
             ephemeral=True
         )
 
@@ -94,7 +94,7 @@ async def on_ready():
     if canal:
         await canal.send(
             "🔐 **Verificação Zyron**\n\n"
-            "Clique no botão abaixo para confirmar sua entrada no servidor.",
+            "Clique no botão abaixo para verificar sua conta.",
             view=Verificar()
         )
 
