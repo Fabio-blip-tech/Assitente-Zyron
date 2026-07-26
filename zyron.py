@@ -6,6 +6,7 @@ from flask import Flask, redirect, request
 from threading import Thread
 
 TOKEN = os.getenv("TOKEN")
+
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
@@ -17,37 +18,29 @@ CANAL_VERIFICACAO = 1530974499061891294
 
 app = Flask(__name__)
 
-usuarios_pendentes = {}
+usuarios_verificados = set()
 
 
 @app.route("/")
 def home():
-    return """
-    <html>
-    <body style="background:#111;color:white;text-align:center;font-family:Arial;padding-top:80px">
-        <h1>🔐 Zyron Verification</h1>
-        <p>Sistema de verificação online.</p>
-    </body>
-    </html>
-    """
+    return "Zyron Online!"
 
 
 @app.route("/verify")
 def verify():
-
     return """
     <html>
     <body style="background:#111;color:white;text-align:center;font-family:Arial;padding-top:80px">
 
-        <h1>🔐 Verificação Zyron</h1>
+    <h1>🔐 Verificação Zyron</h1>
 
-        <p>Clique abaixo para verificar sua conta Discord.</p>
+    <p>Clique abaixo para verificar sua conta Discord.</p>
 
-        <a href="/login">
-            <button style="padding:15px;font-size:18px">
-            🔵 Verificar com Discord
-            </button>
-        </a>
+    <a href="/login">
+    <button style="padding:15px;font-size:18px">
+    🔵 Verificar com Discord
+    </button>
+    </a>
 
     </body>
     </html>
@@ -81,17 +74,17 @@ def callback():
         "redirect_uri": REDIRECT_URI
     }
 
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-
     resposta = requests.post(
         "https://discord.com/api/oauth2/token",
         data=data,
-        headers=headers
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
     )
 
-    token = resposta.json()["access_token"]
+    dados = resposta.json()
+
+    token = dados["access_token"]
 
     usuario = requests.get(
         "https://discord.com/api/users/@me",
@@ -100,26 +93,21 @@ def callback():
         }
     ).json()
 
-    usuarios_pendentes[usuario["id"]] = int(usuario["id"])
-    
-    bot.loop.create_task(
-    dar_cargo(int(usuario["id"]))
-    )
-
+    usuarios_verificados.add(int(usuario["id"]))
 
     return """
     <html>
     <body style="background:#111;color:white;text-align:center;font-family:Arial;padding-top:80px">
 
-        <h1>✅ Verificação concluída!</h1>
+    <h1>✅ Verificação concluída!</h1>
 
-        <p>Agora volte para o servidor.</p>
+    <p>Volte para o servidor.</p>
 
-        <a href="https://discord.gg/veRMhkpuTg">
-            <button style="padding:15px;font-size:18px">
-            🔙 Voltar para o servidor
-            </button>
-        </a>
+    <a href="https://discord.gg/veRMhkpuTg">
+    <button style="padding:15px;font-size:18px">
+    🔙 Voltar para o servidor
+    </button>
+    </a>
 
     </body>
     </html>
@@ -149,6 +137,42 @@ bot = commands.Bot(
 
 
 
+async def entregar_cargo():
+
+    await bot.wait_until_ready()
+
+    guild = bot.get_guild(GUILD_ID)
+
+    if guild is None:
+        print("Servidor não encontrado")
+        return
+
+
+    cargo = guild.get_role(CARGO_VERIFICADO)
+
+    if cargo is None:
+        print("Cargo não encontrado")
+        return
+
+
+    for usuario_id in list(usuarios_verificados):
+
+        try:
+
+            membro = await guild.fetch_member(usuario_id)
+
+            if cargo not in membro.roles:
+                await membro.add_roles(cargo)
+                print("Cargo entregue para:", membro.name)
+
+            usuarios_verificados.remove(usuario_id)
+
+
+        except Exception as erro:
+            print("Erro:", erro)
+
+
+
 class Verificar(discord.ui.View):
 
     def __init__(self):
@@ -166,56 +190,50 @@ class Verificar(discord.ui.View):
         button: discord.ui.Button
     ):
 
+        view = discord.ui.View()
+
+        view.add_item(
+            discord.ui.Button(
+                label="🔵 Abrir verificação",
+                style=discord.ButtonStyle.link,
+                url="https://assitente-zyron.onrender.com/verify"
+            )
+        )
+
         await interaction.response.send_message(
-            "🔐 Abrindo verificação...",
-            ephemeral=True
-        )
-
-        await interaction.followup.send(
-            "Clique aqui para verificar:",
-            view=discord.ui.View().add_item(
-                discord.ui.Button(
-                    label="🔵 Verificar com Discord",
-                    style=discord.ButtonStyle.link,
-                    url="https://assitente-zyron.onrender.com/verify"
-                )
-            ),
+            "Clique para abrir a verificação:",
+            view=view,
             ephemeral=True
         )
 
 
-async def dar_cargo(usuario_id):
 
-    await bot.wait_until_ready()
-
-    guild = bot.get_guild(GUILD_ID)
-
-    if guild:
-
-        membro = guild.get_member(usuario_id)
-
-        if membro:
-
-            cargo = guild.get_role(CARGO_VERIFICADO)
-
-            if cargo:
-                await membro.add_roles(cargo)
-                print("Cargo entregue para", membro.name)
 @bot.event
 async def on_ready():
 
-    print(f"{bot.user} está online!")
+    print(f"{bot.user} online!")
 
     bot.add_view(Verificar())
 
+
     canal = bot.get_channel(CANAL_VERIFICACAO)
+
 
     if canal:
 
         await canal.send(
             "🔐 **Verificação Zyron**\n\n"
-            "Clique no botão abaixo para se verificar.",
+            "Clique no botão abaixo:",
             view=Verificar()
+        )
+
+
+    while True:
+
+        await entregar_cargo()
+
+        await discord.utils.sleep_until(
+            discord.utils.utcnow() + discord.timedelta(seconds=5)
         )
 
 
@@ -223,7 +241,6 @@ async def on_ready():
 @bot.command()
 async def ping(ctx):
     await ctx.send("🏓 Zyron funcionando!")
-
 
 
 keep_alive()
