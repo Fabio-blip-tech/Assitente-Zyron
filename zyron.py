@@ -38,9 +38,10 @@ class Verificar(discord.ui.View):
         super().__init__(timeout=None)
 
     @discord.ui.button(
-        label="✅ Verificar",
-        style=discord.ButtonStyle.green,
-        custom_id="botao_verificar"
+    label="✅ Verifique-se",
+    style=discord.ButtonStyle.green,
+    custom_id="botao_verificar"
+    )
     )
     async def verificar(self, interaction: discord.Interaction, button: discord.ui.Button):
 
