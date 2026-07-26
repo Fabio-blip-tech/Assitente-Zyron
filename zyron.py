@@ -17,7 +17,7 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     return "Zyron Online!"
-    @app.route("/verify")
+@app.route("/verify")
 def verify():
     return """
     <h1>🔐 Verificação Zyron</h1>
