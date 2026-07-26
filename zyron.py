@@ -14,25 +14,32 @@ CANAL_VERIFICACAO = 1530974499061891294
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def home():
     return "Zyron Online!"
+
+
 @app.route("/verify")
 def verify():
     return """
-    @app.route("/login")
-def login():
-    return """
-    <h1>🔐 Login Zyron</h1>
-    <p>Login com Discord em breve...</p>
-    """
     <h1>🔐 Verificação Zyron</h1>
     <p>Clique abaixo para verificar sua conta do Discord.</p>
     <a href="/login">✅ Verifique-se</a>
     """
 
+
+@app.route("/login")
+def login():
+    return """
+    <h1>🔐 Login Zyron</h1>
+    <p>Login com Discord em breve...</p>
+    """
+
+
 def run():
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+
 
 def keep_alive():
     Thread(target=run).start()
@@ -53,11 +60,10 @@ class Verificar(discord.ui.View):
         super().__init__(timeout=None)
 
     @discord.ui.button(
-    label="✅ Verifique-se",
-    style=discord.ButtonStyle.green,
-    custom_id="botao_verificar"
+        label="✅ Verifique-se",
+        style=discord.ButtonStyle.green,
+        custom_id="botao_verificar"
     )
-    
     async def verificar(self, interaction: discord.Interaction, button: discord.ui.Button):
 
         cargo = interaction.guild.get_role(CARGO_VERIFICADO)
