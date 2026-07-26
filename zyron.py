@@ -17,6 +17,13 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     return "Zyron Online!"
+    @app.route("/verify")
+def verify():
+    return """
+    <h1>🔐 Verificação Zyron</h1>
+    <p>Clique abaixo para verificar sua conta do Discord.</p>
+    <a href="/login">✅ Verifique-se</a>
+    """
 
 def run():
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
