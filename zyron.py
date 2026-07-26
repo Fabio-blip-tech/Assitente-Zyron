@@ -104,6 +104,7 @@ class Verificar(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
+
     @discord.ui.button(
         label="✅ Verifique-se",
         style=discord.ButtonStyle.green,
@@ -115,4 +116,39 @@ class Verificar(discord.ui.View):
 
         view.add_item(
             discord.ui.Button(
-                label="🔐 Ir para verificação
+                label="🔐 Ir para verificação",
+                style=discord.ButtonStyle.link,
+                url="https://assitente-zyron.onrender.com/verify"
+            )
+        )
+
+        await interaction.response.send_message(
+            "Clique abaixo para verificar sua conta:",
+            view=view,
+            ephemeral=True
+        )
+
+
+@bot.event
+async def on_ready():
+    print(f"{bot.user} está online!")
+
+    bot.add_view(Verificar())
+
+    canal = bot.get_channel(CANAL_VERIFICACAO)
+
+    if canal:
+        await canal.send(
+            "🔐 **Verificação Zyron**\n\n"
+            "Clique no botão abaixo para verificar sua conta.",
+            view=Verificar()
+        )
+
+
+@bot.command()
+async def ping(ctx):
+    await ctx.send("🏓 Zyron funcionando!")
+
+
+keep_alive()
+bot.run(TOKEN)
