@@ -25,13 +25,19 @@ def verify():
     return """
     <html>
     <body style="background:#111;color:white;text-align:center;font-family:Arial;">
+
         <h1>🔐 Zyron Verification</h1>
         <p>Confirme sua conta do Discord para continuar.</p>
+
         <a href="/login">
-            <button style="padding:15px;font-size:18px;">
+            <button style="
+            padding:15px;
+            font-size:18px;
+            border-radius:10px;">
             🔵 Verificar com Discord
             </button>
         </a>
+
     </body>
     </html>
     """
@@ -55,21 +61,29 @@ def callback():
     return """
     <html>
     <body style="background:#111;color:white;text-align:center;font-family:Arial;">
+
         <h1>✅ Verificação concluída!</h1>
         <p>Você voltou para o Zyron.</p>
 
-        <a href="discord://-/channels/@me">
-            <button style="padding:15px;font-size:18px;">
+        <a href="https://discord.gg/veRMhkpuTg">
+            <button style="
+            padding:15px;
+            font-size:18px;
+            border-radius:10px;">
             🔙 Voltar para o Discord
             </button>
         </a>
+
     </body>
     </html>
     """
 
 
 def run():
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 10000))
+    )
 
 
 def keep_alive():
@@ -95,7 +109,11 @@ class Verificar(discord.ui.View):
         style=discord.ButtonStyle.green,
         custom_id="botao_verificar"
     )
-    async def verificar(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def verificar(
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button
+    ):
 
         view = discord.ui.View()
 
