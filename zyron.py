@@ -101,7 +101,7 @@ def callback():
     ).json()
 
     usuarios_pendentes[usuario["id"]] = int(usuario["id"])
-)
+
 
     return """
     <html>
