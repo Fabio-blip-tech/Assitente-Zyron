@@ -229,13 +229,11 @@ async def on_ready():
         )
 
 
-    while True:
+while True:
 
-        await entregar_cargo()
+    await entregar_cargo()
 
-        await discord.utils.sleep_until(
-            discord.utils.utcnow() + discord.timedelta(seconds=5)
-        )
+    await asyncio.sleep(5)
 
 
 
