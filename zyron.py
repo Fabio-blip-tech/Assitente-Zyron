@@ -5,6 +5,8 @@ from flask import Flask
 from threading import Thread
 
 TOKEN = os.getenv("TOKEN")
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 
 GUILD_ID = 1530961753578672313
 CARGO_VERIFICADO = 1530986790968627351
