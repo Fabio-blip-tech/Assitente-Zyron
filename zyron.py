@@ -229,12 +229,6 @@ async def on_ready():
         )
 
 
-while True:
-
-    await entregar_cargo()
-
-    await asyncio.sleep(5)
-
 
 
 @bot.command()
