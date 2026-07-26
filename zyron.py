@@ -101,6 +101,10 @@ def callback():
     ).json()
 
     usuarios_pendentes[usuario["id"]] = int(usuario["id"])
+    
+    bot.loop.create_task(
+    dar_cargo(int(usuario["id"]))
+    )
 
 
     return """
