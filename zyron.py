@@ -20,6 +20,12 @@ def home():
 @app.route("/verify")
 def verify():
     return """
+    @app.route("/login")
+def login():
+    return """
+    <h1>🔐 Login Zyron</h1>
+    <p>Login com Discord em breve...</p>
+    """
     <h1>🔐 Verificação Zyron</h1>
     <p>Clique abaixo para verificar sua conta do Discord.</p>
     <a href="/login">✅ Verifique-se</a>
