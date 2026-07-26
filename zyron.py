@@ -63,14 +63,14 @@ def callback():
     <body style="background:#111;color:white;text-align:center;font-family:Arial;">
 
         <h1>✅ Verificação concluída!</h1>
-        <p>Você voltou para o Zyron.</p>
+        <p>Sua conta foi verificada com sucesso.</p>
 
         <a href="https://discord.gg/veRMhkpuTg">
             <button style="
             padding:15px;
             font-size:18px;
             border-radius:10px;">
-            🔙 Voltar para o Discord
+            🔙 Voltar para o servidor
             </button>
         </a>
 
@@ -109,49 +109,10 @@ class Verificar(discord.ui.View):
         style=discord.ButtonStyle.green,
         custom_id="botao_verificar"
     )
-    async def verificar(
-        self,
-        interaction: discord.Interaction,
-        button: discord.ui.Button
-    ):
+    async def verificar(self, interaction: discord.Interaction, button: discord.ui.Button):
 
         view = discord.ui.View()
 
         view.add_item(
             discord.ui.Button(
-                label="🔐 Ir para verificação",
-                style=discord.ButtonStyle.link,
-                url="https://assitente-zyron.onrender.com/verify"
-            )
-        )
-
-        await interaction.response.send_message(
-            "Clique abaixo para verificar sua conta:",
-            view=view,
-            ephemeral=True
-        )
-
-
-@bot.event
-async def on_ready():
-    print(f"{bot.user} está online!")
-
-    bot.add_view(Verificar())
-
-    canal = bot.get_channel(CANAL_VERIFICACAO)
-
-    if canal:
-        await canal.send(
-            "🔐 **Verificação Zyron**\n\n"
-            "Clique no botão abaixo para verificar sua conta.",
-            view=Verificar()
-        )
-
-
-@bot.command()
-async def ping(ctx):
-    await ctx.send("🏓 Zyron funcionando!")
-
-
-keep_alive()
-bot.run(TOKEN)
+                label="🔐 Ir para verificação
