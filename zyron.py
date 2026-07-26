@@ -180,7 +180,23 @@ class Verificar(discord.ui.View):
         )
 
 
+async def dar_cargo(usuario_id):
 
+    await bot.wait_until_ready()
+
+    guild = bot.get_guild(GUILD_ID)
+
+    if guild:
+
+        membro = guild.get_member(usuario_id)
+
+        if membro:
+
+            cargo = guild.get_role(CARGO_VERIFICADO)
+
+            if cargo:
+                await membro.add_roles(cargo)
+                print("Cargo entregue para", membro.name)
 @bot.event
 async def on_ready():
 
