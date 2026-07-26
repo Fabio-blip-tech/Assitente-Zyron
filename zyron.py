@@ -23,9 +23,17 @@ def home():
 @app.route("/verify")
 def verify():
     return """
-    <h1>🔐 Zyron Verification</h1>
-    <p>Confirme sua conta do Discord para continuar.</p>
-    <a href="/login">🔵 Verificar com Discord</a>
+    <html>
+    <body style="background:#111;color:white;text-align:center;font-family:Arial;">
+        <h1>🔐 Zyron Verification</h1>
+        <p>Confirme sua conta do Discord para continuar.</p>
+        <a href="/login">
+            <button style="padding:15px;font-size:18px;">
+            🔵 Verificar com Discord
+            </button>
+        </a>
+    </body>
+    </html>
     """
 
 
@@ -45,8 +53,18 @@ def login():
 @app.route("/callback")
 def callback():
     return """
-    <h1>✅ Verificação concluída!</h1>
-    <p>Você voltou para o Zyron.</p>
+    <html>
+    <body style="background:#111;color:white;text-align:center;font-family:Arial;">
+        <h1>✅ Verificação concluída!</h1>
+        <p>Você voltou para o Zyron.</p>
+
+        <a href="discord://-/channels/@me">
+            <button style="padding:15px;font-size:18px;">
+            🔙 Voltar para o Discord
+            </button>
+        </a>
+    </body>
+    </html>
     """
 
 
