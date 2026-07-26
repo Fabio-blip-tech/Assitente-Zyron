@@ -1,123 +1,7 @@
-import discord
-from discord.ext import commands
-import os
-import requests
-from flask import Flask, redirect, request
-from threading import Thread
-
-TOKEN = os.getenv("TOKEN")
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
-
-GUILD_ID = 1530961753578672313
-CARGO_VERIFICADO = 1530986790968627351
-CANAL_VERIFICACAO = 1530974499061891294
-
-app = Flask(__name__)
-
-usuarios_verificados = {}
-
-
-@app.route("/")
-def home():
-    return "Zyron Online!"
-
-
-@app.route("/verify")
-def verify():
-    return """
-    <h1>🔐 Verificação Zyron</h1>
-    <p>Clique abaixo para verificar sua conta.</p>
-    <a href="/login">
-    <button>🔵 Verificar com Discord</button>
-    </a>
-    """
-
-
-@app.route("/login")
-def login():
-    url = (
-        "https://discord.com/oauth2/authorize"
-        f"?client_id={CLIENT_ID}"
-        "&response_type=code"
-        f"&redirect_uri={REDIRECT_URI}"
-        "&scope=identify"
-    )
-
-    return redirect(url)
-
-
-@app.route("/callback")
-def callback():
-
-    code = request.args.get("code")
-
-    data = {
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": REDIRECT_URI
-    }
-
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-
-    resposta = requests.post(
-        "https://discord.com/api/oauth2/token",
-        data=data,
-        headers=headers
-    )
-
-    token = resposta.json()["access_token"]
-
-    user = requests.get(
-        "https://discord.com/api/users/@me",
-        headers={
-            "Authorization": f"Bearer {token}"
-        }
-    ).json()
-
-    usuarios_verificados[user["id"]] = True
-
-    return """
-    <h1>✅ Verificação concluída!</h1>
-    <p>Agora você pode voltar para o servidor.</p>
-
-    <a href="https://discord.gg/veRMhkpuTg">
-    <button>🔙 Voltar para o servidor</button>
-    </a>
-    """
-
-
-def run():
-    app.run(
-        host="0.0.0.0",
-        port=int(os.environ.get("PORT",10000))
-    )
-
-
-def keep_alive():
-    Thread(target=run).start()
-
-
-intents = discord.Intents.default()
-intents.members = True
-intents.message_content = True
-
-bot = commands.Bot(
-    command_prefix="!",
-    intents=intents
-)
-
-
 class Verificar(discord.ui.View):
 
     def __init__(self):
         super().__init__(timeout=None)
-
 
     @discord.ui.button(
         label="✅ Verifique-se",
@@ -130,45 +14,25 @@ class Verificar(discord.ui.View):
         button: discord.ui.Button
     ):
 
-        view = discord.ui.View()
+        cargo = interaction.guild.get_role(CARGO_VERIFICADO)
 
-        view.add_item(
-            discord.ui.Button(
-                label="🔐 Abrir verificação",
-                style=discord.ButtonStyle.link,
-                url="https://assitente-zyron.onrender.com/verify"
+        if cargo is None:
+            await interaction.response.send_message(
+                "❌ Cargo não encontrado.",
+                ephemeral=True
             )
-        )
+            return
+
+        if cargo in interaction.user.roles:
+            await interaction.response.send_message(
+                "✅ Você já está verificado!",
+                ephemeral=True
+            )
+            return
+
+        await interaction.user.add_roles(cargo)
 
         await interaction.response.send_message(
-            "Clique abaixo:",
-            view=view,
+            "✅ Verificação concluída! Você recebeu o cargo.",
             ephemeral=True
         )
-
-
-@bot.event
-async def on_ready():
-
-    print(f"{bot.user} online!")
-
-    bot.add_view(Verificar())
-
-
-    canal = bot.get_channel(CANAL_VERIFICACAO)
-
-    if canal:
-        await canal.send(
-            "🔐 **Verificação Zyron**\n\n"
-            "Clique no botão abaixo:",
-            view=Verificar()
-        )
-
-
-@bot.command()
-async def ping(ctx):
-    await ctx.send("🏓 Online!")
-
-
-keep_alive()
-bot.run(TOKEN)
