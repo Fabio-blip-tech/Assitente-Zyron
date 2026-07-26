@@ -23,9 +23,9 @@ def home():
 @app.route("/verify")
 def verify():
     return """
-    <h1>🔐 Verificação Zyron</h1>
-    <p>Clique abaixo para verificar sua conta do Discord.</p>
-    <a href="/login">✅ Verifique-se</a>
+    <h1>🔐 Zyron Verification</h1>
+    <p>Confirme sua conta do Discord para continuar.</p>
+    <a href="/login">🔵 Verificar com Discord</a>
     """
 
 
@@ -40,6 +40,14 @@ def login():
     )
 
     return redirect(url)
+
+
+@app.route("/callback")
+def callback():
+    return """
+    <h1>✅ Verificação concluída!</h1>
+    <p>Você voltou para o Zyron.</p>
+    """
 
 
 def run():
@@ -75,14 +83,14 @@ class Verificar(discord.ui.View):
 
         view.add_item(
             discord.ui.Button(
-                label="🌐 Abrir verificação",
+                label="🔐 Ir para verificação",
                 style=discord.ButtonStyle.link,
                 url="https://assitente-zyron.onrender.com/verify"
             )
         )
 
         await interaction.response.send_message(
-            "🔐 Clique no botão abaixo para ir ao site:",
+            "Clique abaixo para verificar sua conta:",
             view=view,
             ephemeral=True
         )
