@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import os
-from flask import Flask
+from flask import Flask, redirect
 from threading import Thread
 
 TOKEN = os.getenv("TOKEN")
@@ -31,10 +31,15 @@ def verify():
 
 @app.route("/login")
 def login():
-    return """
-    <h1>🔐 Login Zyron</h1>
-    <p>Login com Discord em breve...</p>
-    """
+    url = (
+        "https://discord.com/oauth2/authorize"
+        f"?client_id={CLIENT_ID}"
+        "&response_type=code"
+        "&redirect_uri=https://assitente-zyron.onrender.com/callback"
+        "&scope=identify"
+    )
+
+    return redirect(url)
 
 
 def run():
@@ -77,7 +82,7 @@ class Verificar(discord.ui.View):
         )
 
         await interaction.response.send_message(
-            "🔐 Clique no botão abaixo para ir ao site de verificação:",
+            "🔐 Clique no botão abaixo para ir ao site:",
             view=view,
             ephemeral=True
         )
