@@ -42,7 +42,7 @@ class Verificar(discord.ui.View):
     style=discord.ButtonStyle.green,
     custom_id="botao_verificar"
     )
-    )
+    
     async def verificar(self, interaction: discord.Interaction, button: discord.ui.Button):
 
         cargo = interaction.guild.get_role(CARGO_VERIFICADO)
