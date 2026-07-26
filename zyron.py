@@ -95,6 +95,8 @@ def callback():
     ).json()
 
     usuarios_verificados.add(int(usuario["id"]))
+    
+    print("VERIFICADO:", usuario["id"])
 
     return """
     <html>
