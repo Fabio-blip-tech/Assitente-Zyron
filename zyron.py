@@ -1,136 +1,18 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 import os
-import asyncio
-import requests
-from flask import Flask, redirect, request
-from threading import Thread
 
 TOKEN = os.getenv("TOKEN")
 
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
-
-GUILD_ID = 1530961753578672313
-CARGO_VERIFICADO = 1530986790968627351
-CANAL_VERIFICACAO = 1530974499061891294
-
-
-app = Flask(__name__)
-
-usuarios_verificados = set()
-
-
-@app.route("/")
-def home():
-    return "Zyron Online!"
-
-
-@app.route("/verify")
-def verify():
-    return """
-    <html>
-    <body style="background:#111;color:white;text-align:center;font-family:Arial;padding-top:80px">
-
-    <h1>🔐 Verificação Zyron</h1>
-
-    <p>Clique abaixo para verificar sua conta Discord.</p>
-
-    <a href="/login">
-    <button style="padding:15px;font-size:18px">
-    🔵 Verificar com Discord
-    </button>
-    </a>
-
-    </body>
-    </html>
-    """
-
-
-@app.route("/login")
-def login():
-
-    url = (
-        "https://discord.com/oauth2/authorize"
-        f"?client_id={CLIENT_ID}"
-        "&response_type=code"
-        f"&redirect_uri={REDIRECT_URI}"
-        "&scope=identify"
-    )
-
-    return redirect(url)
-
-
-@app.route("/callback")
-def callback():
-
-    code = request.args.get("code")
-
-    data = {
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": REDIRECT_URI
-    }
-
-    resposta = requests.post(
-        "https://discord.com/api/oauth2/token",
-        data=data,
-        headers={
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-    )
-
-    dados = resposta.json()
-
-    token = dados["access_token"]
-
-    usuario = requests.get(
-        "https://discord.com/api/users/@me",
-        headers={
-            "Authorization": f"Bearer {token}"
-        }
-    ).json()
-
-    usuarios_verificados.add(int(usuario["id"]))
-    
-    print("VERIFICADO:", usuario["id"])
-
-    return """
-    <html>
-    <body style="background:#111;color:white;text-align:center;font-family:Arial;padding-top:80px">
-
-    <h1>✅ Verificação concluída!</h1>
-
-    <p>Volte para o servidor.</p>
-
-    <a href="https://discord.gg/veRMhkpuTg">
-    <button style="padding:15px;font-size:18px">
-    🔙 Voltar para o servidor
-    </button>
-    </a>
-
-    </body>
-    </html>
-    """
-
-def run():
-    app.run(
-        host="0.0.0.0",
-        port=int(os.environ.get("PORT", 10000))
-    )
-
-
-def keep_alive():
-    Thread(target=run).start()
-
+CATEGORIA_TICKET = 1531278993133801614
+CARGO_STAFF = 1531274767011811509
+CANAL_PAINEL = 1531276511800332329
 
 
 intents = discord.Intents.default()
-intents.members = True
 intents.message_content = True
+intents.members = True
 
 
 bot = commands.Bot(
@@ -139,75 +21,104 @@ bot = commands.Bot(
 )
 
 
-
-async def entregar_cargo():
-
-    await bot.wait_until_ready()
-
-    guild = bot.get_guild(GUILD_ID)
-
-    if guild is None:
-        print("Servidor não encontrado")
-        return
-
-
-    cargo = guild.get_role(CARGO_VERIFICADO)
-
-    if cargo is None:
-        print("Cargo não encontrado")
-        return
-
-
-    for usuario_id in list(usuarios_verificados):
-
-        try:
-
-            membro = await guild.fetch_member(usuario_id)
-
-            if cargo not in membro.roles:
-                await membro.add_roles(cargo)
-                print("Cargo entregue para:", membro.name)
-
-            usuarios_verificados.remove(usuario_id)
-
-
-        except Exception as erro:
-            print("Erro:", erro)
-
-
-
-class Verificar(discord.ui.View):
-
+class Ticket(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
 
     @discord.ui.button(
-        label="✅ Verifique-se",
+        label="🎫 Realizar atendimento",
         style=discord.ButtonStyle.green,
-        custom_id="botao_verificar"
+        custom_id="abrir_ticket"
     )
-    async def verificar(
+    async def abrir(
         self,
         interaction: discord.Interaction,
         button: discord.ui.Button
     ):
 
-        view = discord.ui.View()
+        categoria = interaction.guild.get_channel(CATEGORIA_TICKET)
 
-        view.add_item(
-            discord.ui.Button(
-                label="🔵 Abrir verificação",
-                style=discord.ButtonStyle.link,
-                url="https://assitente-zyron.onrender.com/verify"
+        for canal in interaction.guild.text_channels:
+            if canal.name == f"ticket-{interaction.user.name.lower()}":
+                await interaction.response.send_message(
+                    "❌ Você já possui um ticket aberto.",
+                    ephemeral=True
+                )
+                return
+
+
+        permissoes = {
+            interaction.guild.default_role:
+            discord.PermissionOverwrite(view_channel=False),
+
+            interaction.user:
+            discord.PermissionOverwrite(
+                view_channel=True,
+                send_messages=True
+            ),
+
+            interaction.guild.get_role(CARGO_STAFF):
+            discord.PermissionOverwrite(
+                view_channel=True,
+                send_messages=True
             )
+        }
+
+
+        canal = await interaction.guild.create_text_channel(
+            name=f"ticket-{interaction.user.name}",
+            category=categoria,
+            overwrites=permissoes
         )
+
+
+        embed = discord.Embed(
+            title="🎫 Ticket aberto",
+            description=(
+                f"Olá {interaction.user.mention}!\n\n"
+                "A equipe já foi notificada.\n"
+                "Aguarde um atendimento."
+            ),
+            color=0x000000
+        )
+
+
+        await canal.send(
+            embed=embed,
+            view=Fechar()
+        )
+
 
         await interaction.response.send_message(
-            "Clique para abrir a verificação:",
-            view=view,
+            f"✅ Ticket criado: {canal.mention}",
             ephemeral=True
         )
+
+
+
+class Fechar(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+
+    @discord.ui.button(
+        label="🔒 Fechar ticket",
+        style=discord.ButtonStyle.red,
+        custom_id="fechar_ticket"
+    )
+    async def fechar(
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button
+    ):
+
+        await interaction.response.send_message(
+            "🔒 Fechando ticket...",
+            ephemeral=True
+        )
+
+        await interaction.channel.delete()
 
 
 
@@ -216,28 +127,50 @@ async def on_ready():
 
     print(f"{bot.user} online!")
 
-    bot.add_view(Verificar())
+    bot.add_view(Ticket())
+    bot.add_view(Fechar())
+
+    try:
+        synced = await bot.tree.sync()
+        print(f"{len(synced)} comandos sincronizados")
+    except Exception as erro:
+        print(erro)
 
 
-    canal = bot.get_channel(CANAL_VERIFICACAO)
 
+@bot.tree.command(
+    name="painel",
+    description="Envia o painel de atendimento"
+)
+async def painel(
+    interaction: discord.Interaction
+):
 
-    if canal:
-
-        await canal.send(
-            "🔐 **Verificação Zyron**\n\n"
-            "Clique no botão abaixo:",
-            view=Verificar()
+    if interaction.channel.id != CANAL_PAINEL:
+        await interaction.response.send_message(
+            "❌ Use esse comando no canal correto.",
+            ephemeral=True
         )
+        return
 
 
+    embed = discord.Embed(
+        title="Central de Atendimento | Zyron Store",
+        description=(
+            "Após solicitar um atendimento, aguarde um integrante da equipe "
+            "responde-lo(a). O atendimento é realizado de forma privada, "
+            "contudo, somente integrantes da equipe terá acesso ao atendimento.\n\n"
+            "Tenha ciência que a nossa equipe não se encontra presente 24 horas "
+            "por dia, contudo, dentro dos horários disponíveis nossos, iremos atender conforme."
+        ),
+        color=0x000000
+    )
 
 
-@bot.command()
-async def ping(ctx):
-    await ctx.send("🏓 Zyron funcionando!")
+    await interaction.response.send_message(
+        embed=embed,
+        view=Ticket()
+    )
 
-
-keep_alive()
 
 bot.run(TOKEN)
